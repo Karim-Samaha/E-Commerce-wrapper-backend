@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
-const Email = require("../utilities/nodemiller");
 
 const userSchema = mongoose.Schema({
   name: {
@@ -48,12 +47,16 @@ const userSchema = mongoose.Schema({
   },
 });
 
+// Bcrypt Password
 userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 10);
   this.confirmPassword = undefined;
-  await new Email(this.email, null, null).sendConfirmEmail();
   next();
 });
+
+userSchema.methods.checkPassword = async (userPass, reqPass) => {
+  return await bcrypt.compare(userPass, reqPass);
+};
 
 const User = mongoose.model("User", userSchema);
 
