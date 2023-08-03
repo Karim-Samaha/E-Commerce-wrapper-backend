@@ -6,6 +6,9 @@ const router = express.Router();
 
 router.route("/auth/sign-in").post(authController.signIn);
 router.route("/auth/sign-up").post(authController.signUp);
+router
+  .route("/auth/mail-virfication/:userId/:virficationToken")
+  .post(authController.verifyEmail);
 
 router.route("/").get(usersController.getUsers);
 

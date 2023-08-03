@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const userSchema = mongoose.Schema({
   name: {
@@ -45,19 +46,49 @@ const userSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  mailVirficationToken: {
+    type: String,
+    // select: false,
+  },
+  mailVirficationTokenExpiry: {
+    type: String,
+    // select: false,
+  },
 });
 
 // Bcrypt Password
 userSchema.pre("save", async function (next) {
-  this.password = await bcrypt.hash(this.password, 10);
-  this.confirmPassword = undefined;
+  if (!this.emailVerifictaion) {
+    this.password = await bcrypt.hash(this.password, 10);
+    this.confirmPassword = undefined;
+    const virficationToken = await crypto.randomBytes(32).toString("hex");
+    this.mailVirficationToken = virficationToken;
+    this.mailVirficationTokenExpiry = Date.now() + 2 * 60 * 60 * 1000;
+  }
   next();
 });
 
+// Check Password
 userSchema.methods.checkPassword = async (reqPass, userPass) => {
   return await bcrypt.compare(reqPass, userPass);
 };
 
+// Mail Verfication
+
+userSchema.methods.makeVerficationMailToken = async () => {
+  const virficationToken = await crypto.randomBytes(32).toString("hex");
+  this.mailVirficationToken = virficationToken;
+  this.mailVirficationTokenExpiry = Date.now() + 2 * 60 * 60 * 1000;
+  return virficationToken;
+};
+
+// userSchema.methods.verifyEmail = async () => {
+//   this.emailVerifictaion = true;
+//   this.mailVirficationToken = undefined;
+//   this.mailVirficationTokenExpiry = "null";
+//   console.log("runed");
+//   return;
+// };
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
