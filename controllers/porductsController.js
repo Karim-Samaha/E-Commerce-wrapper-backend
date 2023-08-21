@@ -1,35 +1,10 @@
-exports.getProducts = async (req, res, next) => {
-  res.end(
-    JSON.stringify({
-      status: "success",
-      data: [],
-    })
-  );
-};
+const Product = require("../models/product");
+const operations = require("./crudOperations");
 
-exports.createProduct = async (req, res, next) => {
-  res.end(
-    JSON.stringify({
-      status: "success",
-      data: [],
-    })
-  );
-};
+exports.getProducts = operations.getAll(Product);
 
-exports.editProduct = async (req, res, next) => {
-  res.end(
-    JSON.stringify({
-      status: "success",
-      data: [],
-    })
-  );
-};
+exports.createProduct = operations.createOne(Product);
 
-exports.deleteProduct = async (req, res, next) => {
-  res.end(
-    JSON.stringify({
-      status: "success",
-      data: [],
-    })
-  );
-};
+exports.editProduct = operations.findOneAndEdit(Product);
+
+exports.deleteProduct = operations.findOneAndDelete(Product);

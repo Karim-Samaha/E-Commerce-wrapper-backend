@@ -90,3 +90,46 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     })
   );
 });
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const email = await req.body.email;
+  if (!email) {
+    return next(new Error(500, "Email Is Required for reseting password"));
+  }
+  const user = await User.findOne({ email: email });
+  if (!user) {
+    return next(new Error(500, "Email was not found"));
+  }
+  await user.resetPassword();
+  await user.save({ new: false, validateBeforeSave: false });
+  await new Email(email, null, null).sendResetPasswordEmail();
+  res.status(200).end(
+    JSON.stringify({
+      status: "success",
+      user: user,
+    })
+  );
+});
+
+exports.changePasswordFromReset = catchAsync(async (req, res, next) => {
+  const { resetPasswordToken, resetPasswordExpiry, newPassword } =
+    await req.body;
+  let user = await User.findOne({ resetPasswordToken: resetPasswordToken });
+  if (!user) {
+    return next(new Error(500, "Reset Token was not found"));
+  }
+  if (Date.now() > resetPasswordExpiry) {
+    return next(new Error(500, "Reset Token has expired"));
+  }
+  if (!newPassword) {
+    return next(new Error(500, "New Password is Required"));
+  }
+  user.password = newPassword;
+  user.confirmPassword = newPassword;
+  await user.save({ new: false });
+  res.status(200).end(
+    JSON.stringify({
+      status: "success",
+    })
+  );
+});

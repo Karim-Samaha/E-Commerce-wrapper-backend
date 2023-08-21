@@ -10,6 +10,11 @@ router
   .route("/auth/mail-virfication/:userId/:virficationToken")
   .post(authController.verifyEmail);
 
+router.route("/auth/reset-password").post(authController.resetPassword);
+router
+  .route("/auth/password-change")
+  .post(authController.changePasswordFromReset);
+  
 router.route("/").get(usersController.getUsers);
 
 router

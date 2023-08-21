@@ -5,7 +5,10 @@ const router = express.Router();
 router
   .route("/")
   .get(productsControllers.getProducts)
-  .post(productsControllers.createProduct)
+  .post(productsControllers.createProduct);
+
+router
+  .route("/:id")
   .patch(productsControllers.editProduct)
   .delete(productsControllers.deleteProduct);
 

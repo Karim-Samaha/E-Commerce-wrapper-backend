@@ -46,24 +46,25 @@ const userSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  mailVirficationToken: {
-    type: String,
-    // select: false,
-  },
-  mailVirficationTokenExpiry: {
-    type: String,
-    // select: false,
-  },
+  mailVirficationToken: String,
+  mailVirficationTokenExpiry: String,
+  resetPasswordToken: String,
+  resetPasswordExpiry: String,
 });
 
 // Bcrypt Password
 userSchema.pre("save", async function (next) {
+  // Will Run First Time Before Mail virefication
   if (!this.emailVerifictaion) {
     this.password = await bcrypt.hash(this.password, 10);
     this.confirmPassword = undefined;
     const virficationToken = await crypto.randomBytes(32).toString("hex");
     this.mailVirficationToken = virficationToken;
     this.mailVirficationTokenExpiry = Date.now() + 2 * 60 * 60 * 1000;
+  } else if (this.resetPasswordToken && this.confirmPassword) {
+    console.log("this runed");
+    this.password = await bcrypt.hash(this.password, 10);
+    this.confirmPassword = undefined;
   }
   next();
 });
@@ -75,20 +76,20 @@ userSchema.methods.checkPassword = async (reqPass, userPass) => {
 
 // Mail Verfication
 
-userSchema.methods.makeVerficationMailToken = async () => {
+userSchema.methods.resendMailVirfication = async () => {
   const virficationToken = await crypto.randomBytes(32).toString("hex");
   this.mailVirficationToken = virficationToken;
   this.mailVirficationTokenExpiry = Date.now() + 2 * 60 * 60 * 1000;
   return virficationToken;
 };
 
-// userSchema.methods.verifyEmail = async () => {
-//   this.emailVerifictaion = true;
-//   this.mailVirficationToken = undefined;
-//   this.mailVirficationTokenExpiry = "null";
-//   console.log("runed");
-//   return;
-// };
+userSchema.methods.resetPassword = async function () {
+  const resetToken = await crypto.randomBytes(32).toString("hex");
+  this.resetPasswordToken = resetToken;
+  this.resetPasswordExpiry = Date.now() + 2 * 60 * 60 * 1000;
+  return resetToken;
+};
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

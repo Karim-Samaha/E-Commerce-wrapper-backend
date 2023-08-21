@@ -3,7 +3,10 @@ const { findByIdAndDelete } = require("../models/category");
 
 exports.getAll = (model) =>
   catchAysnc(async (req, res, next) => {
-    const data = await model.find();
+    const data = await model.find().populate({
+      path: "products",
+      select: "name price",
+    });
     res.status(200).end(
       JSON.stringify({
         status: "success",
